@@ -1,52 +1,76 @@
-Advanced Android Sample App
-===================================
+# Sunshine-Wear
+This App is Project 6 for the Udacity Android Developer Nanodegree. Sunshine-Wear showcases custom watchface design and the synching of Assets and DataItems with an Android Wearable device.
 
-Synchronizes weather information from OpenWeatherMap on Android Phones and Tablets. Used in the Udacity Advanced Android course.
+![Sunshine-Wear](http://www.coronite.net/assets/img/github/project6.png)
 
-Pre-requisites
---------------
-Android SDK 21 or Higher
-Build Tools version 21.1.2
-Android Support AppCompat 22.2.0
-Android Support Annotations 22.2.0
-Android Support GridLayout 22.2.0
-Android Support CardView 22.2.0
-Android Support Design 22.2.0
-Android Support RecyclerView 22.2.0
-Google Play Services GCM 7.0.0
-BumpTech Glide 3.5.2
+## Android Features / Libraries Implemented:
 
+- [DataItems](https://developer.android.com/training/wearables/data-layer/data-items.html)
+- [Transferring Assets](https://developer.android.com/training/wearables/data-layer/assets.html)
+- [Watchface Design](https://developer.android.com/design/wear/watchfaces.html)
 
-Getting Started
----------------
-This sample uses the Gradle build system.  To build this project, use the
-"gradlew build" command or use "Import Project" in Android Studio.
+## Specifications
+- `compileSdkVersion 24`
+- `buildToolsVersion "24.0.1"`
+- `minSdkVersion 10`
+- `targetSdkVersion 24`
 
-Support
--------
+## Dependencies
+```
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:support-annotations:24.2.1'
+    compile 'com.android.support:gridlayout-v7:24.2.1'
+    compile 'com.android.support:cardview-v7:24.2.1'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:design:24.2.1'
+    compile 'com.github.bumptech.glide:glide:3.5.2'
+    compile 'com.android.support:recyclerview-v7:24.2.1'
+    compile 'com.google.android.apps.muzei:muzei-api:2.0'
+    compile 'com.google.android.gms:play-services:9.2.1'
+    compile 'com.google.android.gms:play-services-wearable:9.2.1'
+}
+```
 
-- Google+ Community: https://plus.google.com/communities/105153134372062985968
-- Stack Overflow: http://stackoverflow.com/questions/tagged/android
+## Implementation
 
-Patches are encouraged, and may be submitted by forking this project and
-submitting a pull request through GitHub. Please see CONTRIBUTING.md for more details.
+[Step-by-step instructions](http://www.coronite.net/training/android_wear_development/android_wear_development_lesson2.php#addendum-2) on installing an Android Wear Virtual Device, and pairing your handheld device with the emulator.
 
-License
--------
-Copyright 2015 The Android Open Source Project, Inc.
+Notes on synching DataItems and Assets:
 
-Licensed to the Apache Software Foundation (ASF) under one or more contributor
-license agreements.  See the NOTICE file distributed with this work for
-additional information regarding copyright ownership.  The ASF licenses this
-file to you under the Apache License, Version 2.0 (the "License"); you may not
-use this file except in compliance with the License.  You may obtain a copy of
-the License at
+Package names of the `app` and `wear` modules must be the same.
+DataItems will only be sent if their data is new, to facilitate this during development, add a timestamp to the DataMapRequest, e.g. in `SunshineSyncAdapter.java`:
+```
+putDataMapRequest.getDataMap().putLong("timestamp", System.currentTimeMillis());
+```
+Image Assets must be converted to bitmaps on a background thread, as follows in `SunshineWatchFaceService.java`:
+```
+@Override
+            protected Bitmap doInBackground(Asset... params) {
 
-http://www.apache.org/licenses/LICENSE-2.0
+                if (params.length > 0) {
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-License for the specific language governing permissions and limitations under
-the License.
+                    Asset asset = params[0];
 
+                    InputStream assetInputStream = Wearable.DataApi.getFdForAsset(
+                            mGoogleApiClient, asset).await().getInputStream();
+
+                    if (assetInputStream == null) {
+                        Log.w(LOG_TAG, "Requested an unknown Asset.");
+                        return null;
+                    }
+                    return BitmapFactory.decodeStream(assetInputStream);
+
+                } else {
+                    Log.e(LOG_TAG, "Asset must be non-null");
+                    return null;
+                }
+            }
+```
+
+This sample uses the Gradle build system. To build this project, use the "gradlew build" command or use "Import Project" in Android Studio.
+
+If you have any questions I'd be happy to try and help. Please contact me at: john@coronite.net.
+
+# License
+This is a public domain work under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Feel free to use it as you see fit.
